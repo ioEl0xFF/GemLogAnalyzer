@@ -1,0 +1,153 @@
+﻿<Window x:Class="GemLogAnalyzer.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:GemLogAnalyzer"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:vm="clr-namespace:GemLogAnalyzer.ViewModels"
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="1200" Width="1600">
+    <Window.DataContext>
+        <vm:MainViewModel />
+    </Window.DataContext>
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="ContentRendered">
+            <i:InvokeCommandAction Command="{Binding CommandLoadConf}"
+                                   CommandParameter="MainWindow"/>
+        </i:EventTrigger>
+        <i:EventTrigger EventName="Closing">
+            <i:InvokeCommandAction Command="{Binding CommandSaveConf}"/>
+        </i:EventTrigger>
+    </i:Interaction.Triggers>
+    <Grid>
+        <!-- Gridの行と列の定義 -->
+        <Grid.RowDefinitions>
+            <RowDefinition Height="69*"/>
+            <RowDefinition Height="5*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="10*"/>
+            <ColumnDefinition Width="9*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- ログ表示用のDataGrid -->
+        <DataGrid Name="DataGrid_CvpGemLog"
+                  ItemsSource="{Binding LogDatas}"
+                  SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                  AutoGenerateColumns="False"
+                  Style="{StaticResource MaterialDesignDataGrid}"
+                  Margin="10,10,10,10" Grid.Row="0" Grid.RowSpan="2" Grid.Column="0"
+                  ScrollViewer.VerticalScrollBarVisibility="Visible" IsReadOnly="True">
+            <!-- DataGridのイベント設定 -->
+            <i:Interaction.Triggers>
+                <i:EventTrigger EventName="SelectionChanged" >
+                    <i:InvokeCommandAction Command="{Binding CommandShowEventDetail}"
+                                           CommandParameter="{Binding SelectedItem}" />
+                </i:EventTrigger>
+            </i:Interaction.Triggers>
+            <!-- DataGridの色設定 -->
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow">
+                    <Style.Triggers>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <!-- S6F11 イベントの場合、背景色を変更 -->
+                                <Condition Binding="{Binding Stream}" Value="6"/>
+                                <Condition Binding="{Binding Function}" Value="11"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Background" Value="LightYellow"/>
+                        </MultiDataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.RowStyle>
+            <!-- DataGridの列定義 -->
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Time" Width="150" Binding="{Binding Date}" />
+                <DataGridTextColumn Header="Send/Receive" Width="120" Binding="{Binding SendReceive}"/>
+                <DataGridTextColumn Header="Stream" Width="90" Binding="{Binding Stream}"/>
+                <DataGridTextColumn Header="Function" Width="90" Binding="{Binding Function}"/>
+                <DataGridTextColumn Header="Message" Width="*" Binding="{Binding MessageTitle}"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- ファイルパス入力とフォルダ選択のためのStackPanel -->
+        <DockPanel Grid.Row="1" Grid.Column="1" LastChildFill="True" Margin="0,5,0,0">
+            <!-- フォルダ選択のためのButton -->
+            <Button Style="{StaticResource MaterialDesignIconButton}" DockPanel.Dock="Right" Margin="0,0,30,0"
+                    Command="{Binding CommandOpenFileDialog}" 
+                    CommandParameter="MainWindow">
+                <materialDesign:PackIcon Kind="FolderOpen" />
+            </Button>
+
+            <!-- ファイルパスを入力するTextBox -->
+            <TextBox x:Name="TextBoxCvpGemLogFilePath"
+                     Style="{StaticResource MaterialDesignTextBox}" VerticalAlignment="Center"
+                     Margin="30,0,0,0" TextWrapping="Wrap" Height="25"
+                     materialDesign:HintAssist.Hint="Enter file path of CvpGem.log"
+                     Text="{Binding CvpGemLogFilePath, UpdateSourceTrigger=PropertyChanged}">
+                <TextBox.InputBindings>
+                    <KeyBinding Gesture="Enter" Command="{Binding CommandReadLog}"/>
+                </TextBox.InputBindings>
+            </TextBox>
+        </DockPanel>
+
+        <!-- 設定画面に遷移するButton -->
+        <!-- コマンドパラメータに自身のインスタンスを渡す -->
+        <Button Style="{StaticResource MaterialDesignToolButton}" Grid.Row="1" Grid.Column="2"
+                Width="50" Height="50" HorizontalAlignment="Center" VerticalAlignment="Center"
+                Name="ButtonSetting" 
+                Command="{Binding CommandOpenSettingDialog}" 
+                CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}">
+            <materialDesign:PackIcon Kind="CogOutline" Width="36" Height="36"/>
+        </Button>
+
+        <!-- 詳細情報を表示するGroupBox -->
+        <GroupBox Header="Detail" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" FontSize="24" Margin="10,10,10,10">
+            <Grid>
+                <!-- GroupBox内のGridの行と列の定義 -->
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="10*"/>
+                    <RowDefinition Height="87*"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="141*"/>
+                    <ColumnDefinition Width="541*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- 時間とメッセージのラベル -->
+                <DockPanel Grid.Column="0">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource MaterialDesignHeadline5TextBlock}" Height="40" Text="Time"/>
+                        <TextBlock Style="{StaticResource MaterialDesignHeadline5TextBlock}" Height="40" Text="Message"/>
+                    </StackPanel>
+                </DockPanel>
+
+                <!-- 空のTextBlockでスペースを確保（必要に応じて内容を追加） -->
+                <DockPanel Grid.Column="1">
+                    <StackPanel>
+                        <TextBlock Name="Date" Height="40" Text="{Binding DetailDate}"/>
+                        <TextBlock Name="MessageTitle" Height="40" Text="{Binding DetailMessageTitle}"/>
+                    </StackPanel>
+                </DockPanel>
+
+                <!-- さらなる詳細を表示するDataGrid -->
+                <DataGrid Name="DataGrid_VidList" 
+                          Style="{StaticResource MaterialDesignDataGrid}"
+                          ItemsSource="{Binding VidLists}"
+                          AutoGenerateColumns="False"
+                          Margin="10" Grid.Row="1" Grid.ColumnSpan="2"
+                          FrozenColumnCount="1" IsReadOnly="True">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="No" Width="70" Binding="{Binding VidNo}"  />
+                        <DataGridTextColumn Header="Name" Width="200" Binding="{Binding Name}" />
+                        <DataGridTextColumn Header="Value" Width="*" Binding="{Binding Sml}" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </GroupBox>
+    </Grid>
+
+</Window>
