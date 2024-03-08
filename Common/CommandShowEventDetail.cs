@@ -56,9 +56,6 @@ namespace GemLogAnalyzer.Common
 
             m_LogData = m_GeneralClass.LogDatas[selectedItem.DataNo];
 
-            // S6F11以外は反応しない。
-            if( m_LogData.Stream != 6 || m_LogData.Function != 11 ) return false;
-
             return true;
         }
 
@@ -74,15 +71,31 @@ namespace GemLogAnalyzer.Common
             m_vm.DetailMessageTitle = m_LogData.MessageTitle;
             
             // VidListsをクリア
-            m_vm.VidLists.Clear();
-            for( int vidCount = 0; vidCount < m_LogData.VidList.Count; vidCount++ )
+            m_vm.Details.Clear();
+            if( m_LogData.Stream == 6 && m_LogData.Function == 11 )
             {
-                m_vm.VidLists.Add( new DataGridVidList
+                // S6F11:VIDリストを作成。
+                for( int vidCount = 0; vidCount < m_LogData.VidList.Count; vidCount++ )
                 {
-                    VidNo = m_LogData.VidList[vidCount].id,
-                    Name = m_LogData.VidList[vidCount].description,
-                    Sml = m_LogData.VidList[vidCount].sml
-                } );
+                    m_vm.Details.Add( new DataGridDetail
+                    {
+                        No = m_LogData.VidList[vidCount].id,
+                        Name = m_LogData.VidList[vidCount].description,
+                        Value = m_LogData.VidList[vidCount].sml
+                    } );
+                }
+            } else
+            {
+                // SMLを表示
+                for ( int messageCount = 0; messageCount < m_LogData.Message.Count; messageCount++ )
+                {
+                    m_vm.Details.Add( new DataGridDetail
+                    {
+                        No = messageCount,
+                        Name = string.Empty,
+                        Value = m_LogData.Message[messageCount]
+                    } );
+                }
             }
         }
     }

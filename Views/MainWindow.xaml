@@ -134,16 +134,16 @@
                 </DockPanel>
 
                 <!-- さらなる詳細を表示するDataGrid -->
-                <DataGrid Name="DataGrid_VidList" 
+                <DataGrid Name="DataGridDetail" 
                           Style="{StaticResource MaterialDesignDataGrid}"
-                          ItemsSource="{Binding VidLists}"
+                          ItemsSource="{Binding Details}"
                           AutoGenerateColumns="False"
                           Margin="10" Grid.Row="1" Grid.ColumnSpan="2"
                           FrozenColumnCount="1" IsReadOnly="True">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="No" Width="70" Binding="{Binding VidNo}"  />
+                        <DataGridTextColumn Header="No" Width="70" Binding="{Binding No}"  />
                         <DataGridTextColumn Header="Name" Width="200" Binding="{Binding Name}" />
-                        <DataGridTextColumn Header="Value" Width="*" Binding="{Binding Sml}" />
+                        <DataGridTextColumn Header="Value" Width="*" Binding="{Binding Value}" />
                     </DataGrid.Columns>
                 </DataGrid>
             </Grid>

@@ -124,7 +124,7 @@ namespace GemLogAnalyzer.ViewModels
         /// <summary>
         /// DetailVidList用DataGridに表示されるログデータのコレクション。
         /// </summary>
-        public ObservableCollection<DataGridVidList> VidLists
+        public ObservableCollection<DataGridDetail> Details
         {
             get => m_MainModel.VidLists;
             set
@@ -342,7 +342,7 @@ namespace GemLogAnalyzer.ViewModels
     }
 
     // VIDリスト表示用DataGrid //////////////////////////////////
-    public class DataGridVidList : INotifyPropertyChanged
+    public class DataGridDetail : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
         protected virtual void RaisePropertyChanged( [CallerMemberName]string propertyName = null)
@@ -356,7 +356,7 @@ namespace GemLogAnalyzer.ViewModels
 
         int vidNo;
         // VID番号
-        public int VidNo
+        public int No
         {
             get { return vidNo; }
             set
@@ -386,7 +386,7 @@ namespace GemLogAnalyzer.ViewModels
 
         string sml;
         // SML
-        public string Sml
+        public string Value
         {
             get { return sml; }
             set
@@ -399,11 +399,11 @@ namespace GemLogAnalyzer.ViewModels
             }
         }
 
-        public DataGridVidList()
+        public DataGridDetail()
         {
-            VidNo = 0;
+            No = 0;
             Name = string.Empty;
-            Sml = string.Empty;
+            Value = string.Empty;
         }
     }
 }
