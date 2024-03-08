@@ -10,11 +10,13 @@ namespace GemLogAnalyzer.Common
     {
         public string LogFilePath { get; set; } = string.Empty;
         public string GemConfPath { get; set; } = string.Empty;
+        public DateTime LogFileDate { get; set; } = DateTime.MinValue;
 
         public ClassGemAnalyzerConfig()
         {
             LogFilePath = string.Empty;
             GemConfPath = string.Empty;
+            LogFileDate = DateTime.MinValue;
         }
     }
 }

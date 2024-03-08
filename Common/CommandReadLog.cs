@@ -84,6 +84,8 @@ namespace GemLogAnalyzer.Common
         {
             // ログを読み込む
             ReadCvpGemLogFile( m_GeneralClass.AnaConf.LogFilePath );
+
+            m_GeneralClass.AnaConf.LogFileDate = File.GetLastWriteTime( m_GeneralClass.AnaConf.LogFilePath );
         }
 
         /// <summary>

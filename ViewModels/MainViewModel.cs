@@ -10,6 +10,8 @@ using System.ComponentModel;
 using System.Windows.Input;
 using System.Runtime.CompilerServices;
 using System.Collections.ObjectModel;
+using System.Windows.Threading;
+using System.IO;
 
 
 namespace GemLogAnalyzer.ViewModels
@@ -113,7 +115,7 @@ namespace GemLogAnalyzer.ViewModels
             get => m_MainModel.LogDatas;
             set
             {
-                if( m_MainModel.LogDatas != value)
+                if( m_MainModel.LogDatas != value )
                 {
                     m_MainModel.LogDatas = value;
                     NotifyPropertyChanged();
@@ -129,7 +131,7 @@ namespace GemLogAnalyzer.ViewModels
             get => m_MainModel.VidLists;
             set
             {
-                if( m_MainModel.VidLists != value)
+                if( m_MainModel.VidLists != value )
                 {
                     m_MainModel.VidLists = value;
                     NotifyPropertyChanged();
@@ -145,7 +147,7 @@ namespace GemLogAnalyzer.ViewModels
             get => m_MainModel.SelectedItem;
             set
             {
-                if( m_MainModel.SelectedItem != value)
+                if( m_MainModel.SelectedItem != value )
                 {
                     m_MainModel.SelectedItem = value;
                     NotifyPropertyChanged();
@@ -178,7 +180,7 @@ namespace GemLogAnalyzer.ViewModels
             get => m_MainModel.DetailDate;
             set
             {
-                if( m_MainModel.DetailDate != value)
+                if( m_MainModel.DetailDate != value )
                 {
                     m_MainModel.DetailDate = value;
                     NotifyPropertyChanged();
@@ -194,7 +196,7 @@ namespace GemLogAnalyzer.ViewModels
             get => m_MainModel.DetailMessageTitle;
             set
             {
-                if( m_MainModel.DetailMessageTitle != value)
+                if( m_MainModel.DetailMessageTitle != value )
                 {
                     m_MainModel.DetailMessageTitle = value;
                     NotifyPropertyChanged();
@@ -215,6 +217,13 @@ namespace GemLogAnalyzer.ViewModels
             m_CommandShowEventDetail = new CommandShowEventDetail( this );
             m_CommandOpenFileDialog = new CommandOpenFileDialog( this );
 
+            // タイマーを設置して、定期的にファイルの更新を確認する。
+            DispatcherTimer timer = new DispatcherTimer();
+            timer.Interval = TimeSpan.FromMilliseconds( 500 );
+            timer.Tick += Timer_Tick;
+
+            timer.Start();
+
             // GeneralClassから設定ファイルのパスを取得し、プロパティに設定
             CvpGemLogFilePath = m_GeneralClass.AnaConf.LogFilePath;
         }
@@ -231,6 +240,16 @@ namespace GemLogAnalyzer.ViewModels
         protected void NotifyPropertyChanged( [CallerMemberName] string propertyName = "" )
         {
             PropertyChanged?.Invoke( this, new PropertyChangedEventArgs( propertyName ) );
+        }
+
+        private void Timer_Tick( object sender, EventArgs e )
+        {
+            DateTime lastTime = File.GetLastWriteTime( m_GeneralClass.AnaConf.LogFilePath );
+            if( lastTime > m_GeneralClass.AnaConf.LogFileDate )
+            {
+                // 更新があったら再度読み込み
+                m_CommandReadLog.Execute(null);
+            }
         }
 
     }
