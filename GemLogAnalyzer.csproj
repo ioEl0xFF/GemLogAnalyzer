@@ -6,6 +6,9 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <VersionPrefix>0.1.0.0</VersionPrefix>
+	<VersionSuffix></VersionSuffix>
+	<FileVersion>0.1.0.0</FileVersion>
     <Platforms>AnyCPU;x64</Platforms>
     <PackageIcon>icon.ico</PackageIcon>
     <ApplicationIcon>Resource\icon.ico</ApplicationIcon>
