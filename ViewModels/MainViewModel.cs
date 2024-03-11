@@ -13,6 +13,8 @@ using System.Collections.ObjectModel;
 using System.Windows.Threading;
 using System.IO;
 using System.Windows.Media;
+using System.Windows.Controls;
+using System.Windows;
 
 
 namespace GemLogAnalyzer.ViewModels
@@ -247,17 +249,54 @@ namespace GemLogAnalyzer.ViewModels
         {
             if( m_CommandReadLog.CanExecute( null ) )
             {
+                // ScrollViewerを取得
+                var scrollViewer = GetScrollViewer( /* 2.ここに実装 */ );
+                bool isAtBottom = false;
+
+                if( scrollViewer != null )
+                {
+                    // 現在のスクロール位置が一番下にあるかを判断
+                    isAtBottom = scrollViewer.VerticalOffset >= scrollViewer.ScrollableHeight;
+                }
+
                 DateTime? lastTime = File.GetLastWriteTime( m_GeneralClass.AnaConf.LogFilePath );
                 if( lastTime == null )
                 {
                     return;
                 }
+
                 if( lastTime > m_GeneralClass.AnaConf.LogFileDate )
                 {
-                    // 更新があったら再度読み込み
+                    // ログを再読み込み
                     m_CommandReadLog.Execute( null );
+
+                    // スクロール位置が一番下だった場合、再度一番下にスクロール
+                    if( isAtBottom && scrollViewer != null )
+                    {
+                        scrollViewer.ScrollToEnd();
+                    }
                 }
             }
+        }
+
+        // DataGrid内のScrollViewerを取得するヘルパーメソッド
+        private ScrollViewer GetScrollViewer( DependencyObject dependencyObject )
+        {
+            if( dependencyObject is ScrollViewer )
+            {
+                return dependencyObject as ScrollViewer;
+            }
+
+            for( int i = 0; i < VisualTreeHelper.GetChildrenCount( dependencyObject ); i++ )
+            {
+                var child = VisualTreeHelper.GetChild( dependencyObject, i );
+                var result = GetScrollViewer( child );
+                if( result != null )
+                {
+                    return result;
+                }
+            }
+            return null;
         }
     }
 
