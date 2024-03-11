@@ -12,6 +12,7 @@ using System.Runtime.CompilerServices;
 using System.Collections.ObjectModel;
 using System.Windows.Threading;
 using System.IO;
+using System.Windows.Media;
 
 
 namespace GemLogAnalyzer.ViewModels
@@ -231,7 +232,7 @@ namespace GemLogAnalyzer.ViewModels
         /// <summary>
         /// INotifyPropertyChangedインターフェースの実装。プロパティが変更された際にイベントを発火させる。
         /// </summary>
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         /// <summary>
         /// プロパティの変更を通知するヘルパーメソッド。
@@ -242,23 +243,29 @@ namespace GemLogAnalyzer.ViewModels
             PropertyChanged?.Invoke( this, new PropertyChangedEventArgs( propertyName ) );
         }
 
-        private void Timer_Tick( object sender, EventArgs e )
+        private void Timer_Tick( object? sender, EventArgs e )
         {
-            DateTime lastTime = File.GetLastWriteTime( m_GeneralClass.AnaConf.LogFilePath );
-            if( lastTime > m_GeneralClass.AnaConf.LogFileDate )
+            if( m_CommandReadLog.CanExecute( null ) )
             {
-                // 更新があったら再度読み込み
-                m_CommandReadLog.Execute(null);
+                DateTime? lastTime = File.GetLastWriteTime( m_GeneralClass.AnaConf.LogFilePath );
+                if( lastTime == null )
+                {
+                    return;
+                }
+                if( lastTime > m_GeneralClass.AnaConf.LogFileDate )
+                {
+                    // 更新があったら再度読み込み
+                    m_CommandReadLog.Execute( null );
+                }
             }
         }
-
     }
 
 
     // Log表示用DataGrid //////////////////////////////////
     public class DataGridLogData : INotifyPropertyChanged
     {
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
         protected virtual void RaisePropertyChanged( [CallerMemberName]string propertyName = null)
         {
             var handler = PropertyChanged;
@@ -363,7 +370,7 @@ namespace GemLogAnalyzer.ViewModels
     // VIDリスト表示用DataGrid //////////////////////////////////
     public class DataGridDetail : INotifyPropertyChanged
     {
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
         protected virtual void RaisePropertyChanged( [CallerMemberName]string propertyName = null)
         {
             var handler = PropertyChanged;

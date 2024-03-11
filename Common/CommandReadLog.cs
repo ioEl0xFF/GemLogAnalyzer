@@ -224,6 +224,11 @@ namespace GemLogAnalyzer.Common
                     continue;
                 }
                 int reportNo = int.Parse(reportMatch.Groups[1].Value);
+                if( !eventModel.reports.Contains(reportNo) )
+                {
+                    messageCount++;
+                    continue;
+                }
         
                 // レポートにリンクされているVIDをリストで取得
                 List<ClassCvpGemConfig.Variable>? variableList = config.GetVariableListFromReportNo(reportNo);

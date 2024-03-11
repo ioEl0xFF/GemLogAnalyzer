@@ -34,13 +34,22 @@
         </Grid.ColumnDefinitions>
 
         <!-- ログ表示用のDataGrid -->
-        <DataGrid Name="DataGrid_CvpGemLog"
+        <DataGrid Name="DataGridCvpGemLog"
                   ItemsSource="{Binding LogDatas}"
                   SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                   AutoGenerateColumns="False"
                   Style="{StaticResource MaterialDesignDataGrid}"
                   Margin="10,10,10,10" Grid.Row="0" Grid.RowSpan="2" Grid.Column="0"
-                  ScrollViewer.VerticalScrollBarVisibility="Visible" IsReadOnly="True">
+                  IsReadOnly="True"
+                  ScrollViewer.VerticalScrollBarVisibility="Auto" 
+                  ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                  EnableColumnVirtualization="True"
+                  EnableRowVirtualization="True"
+                  VirtualizingPanel.IsVirtualizing="True"
+                  VirtualizingPanel.VirtualizationMode="Recycling">
+            <ScrollViewer >
+            </ScrollViewer>
+
             <!-- DataGridのイベント設定 -->
             <i:Interaction.Triggers>
                 <i:EventTrigger EventName="SelectionChanged" >
