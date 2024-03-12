@@ -33,7 +33,7 @@ namespace GemLogAnalyzer.Common
         private long m_LastFilePoint;
 
 
-        public CommandReadLog(MainViewModel vm)
+        public CommandReadLog( MainViewModel vm )
         {
             m_vm = vm;
             m_GeneralClass = GeneralClass.Instance;
@@ -52,7 +52,7 @@ namespace GemLogAnalyzer.Common
         /// <param name="parameter"></param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public bool CanExecute(object? parameter)
+        public bool CanExecute( object? parameter )
         {
             // ファイルが存在するか確認
             string filePath = m_vm.CvpGemLogFilePath;
@@ -98,7 +98,7 @@ namespace GemLogAnalyzer.Common
         /// </summary>
         /// <param name="parameter"></param>
         /// <exception cref="NotImplementedException"></exception>
-        public void Execute(object? parameter)
+        public void Execute( object? parameter )
         {
             // ログを読み込む
             ReadCvpGemLogFile( m_GeneralClass.AnaConf.LogFilePath );
@@ -107,203 +107,217 @@ namespace GemLogAnalyzer.Common
         }
 
         /// <summary>
-        /// ログファイル読み込み処理
+        /// 指定されたファイルパスのCVP GEMログファイルを読み込み、データを解析します。
         /// </summary>
-        private void ReadCvpGemLogFile(string argFilePath )
+        /// <param name="argFilePath">読み込むファイルのパス。</param>
+        private void ReadCvpGemLogFile( string argFilePath )
         {
             using( FileStream stream = new FileStream( argFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite ) )
             {
-                int LogDatasCount = 0;
-
-                if( stream.Length > m_LastFilePoint && m_LastFilePoint != 0 )
+                // ファイルサイズが減っていた場合、または同じであるが開始位置ではない場合はリセット
+                if( stream.Length <= m_LastFilePoint && m_LastFilePoint != 0 )
                 {
-                    // ファイルポインタを前回の最終読み込み位置に指定
-                    stream.Seek( m_LastFilePoint, SeekOrigin.Begin );
-                    if( m_vm.LogDatas.Count > 0 )
-                    {
-                        LogDatasCount = m_vm.LogDatas.LastOrDefault().DataNo + 1;
-                    }
-                } else
-                {
-                    // 前回読み込んだファイルと同じ名前でも、ファイルのサイズが減っていたら全読み込み
                     m_LastFilePoint = 0;
+                    m_vm.LogDatas.Clear(); // DataGridをクリア
+                    m_GeneralClass.LogDatas.Clear(); // ログデータをクリア
+                }
 
-                    // DataGridをクリア
-                    m_vm.LogDatas.Clear();
-                    // Logデータもクリア
-                    m_GeneralClass.LogDatas.Clear();
+                int logDataCount = ( m_vm.LogDatas.Count > 0 ) ? m_vm.LogDatas.LastOrDefault().DataNo + 1 : 0;
+                if( m_LastFilePoint > 0 )
+                {
+                    // 最後に読んだファイルの位置に移動
+                    stream.Seek( m_LastFilePoint, SeekOrigin.Begin );
                 }
 
                 try
                 {
-                    // 1行ずつ読み込み
                     using( StreamReader reader = new StreamReader( stream ) )
                     {
-                        string? readLine;
-                        // ファイルの終わりまで読み込む
-                        while( ( readLine = reader.ReadLine() ) != null )
+                        string? line;
+                        while( ( line = reader.ReadLine() ) != null )
                         {
-                            string line = readLine;
-                            ClassCvpGemLogData data = new ClassCvpGemLogData();
-
-                            // SendReceiveFlag //////////
-                            // <Send>
-                            if( line.Contains( "<Send>" ) )
+                            ClassCvpGemLogData data = ParseLine( line, reader );
+                            if( data != null ) // データが正常に解析された場合
                             {
-                                data.SendReceiveFlag = eSendReceiveFlag.Send;
-                            }
-
-                            // <Receive>
-                            if( line.Contains( "<Receive>" ) )
-                            {
-                                data.SendReceiveFlag = eSendReceiveFlag.Receive;
-                            }
-
-                            if( data.SendReceiveFlag != eSendReceiveFlag.None )
-                            {
-                                // Date /////////////////////
-                                string format = "yyyy-MM-dd HH:mm:ss";
-
-                                // 日時の部分のみを取り出すために、スペースで分割して最初の2つの要素を結合します
-                                string dateTimePart = line.Split( new[] { ' ' }, 3 )[0] + " " + line.Split( new[] { ' ' }, 3 )[1];
-
-                                try
-                                {
-                                    // 日時フォーマットを指定してDateTime型に変換
-                                    data.Date = DateTime.ParseExact( dateTimePart, format, CultureInfo.InvariantCulture );
-                                }
-                                catch( FormatException )
-                                {
-                                    continue;
-                                }
-
-                                // Message //////////
-                                while( ( readLine = reader.ReadLine() ) != null )
-                                {
-                                    if( readLine == "" )
-                                    {
-                                        break;
-                                    }
-                                    line = readLine;
-                                    data.Message.Add( line );
-                                }
-                                data.MessageTitle = data.Message[0];
-
-                                // S ////////////////
-                                Regex pattern = new Regex( @"S(\d+)F" );
-                                Match match = pattern.Match( data.MessageTitle );
-                                data.Stream = int.Parse( match.Groups[1].Value );
-
-                                // F ////////////////
-                                pattern = new Regex( @"F(\d+)" );
-                                match = pattern.Match( data.MessageTitle );
-                                data.Function = int.Parse( match.Groups[1].Value );
-
-                                // S6F11の時の処理
-                                if( data.Stream == 6 && data.Function == 11 )
-                                {
-                                    AnalyzeEvent( data );
-                                }
-
-                                // Viewに反映
-                                m_vm.LogDatas.Add( new DataGridLogData
-                                {
-                                    Date = data.Date.ToString(),
-                                    SendReceive = data.SendReceiveFlag.ToString(),
-                                    Stream = data.Stream,
-                                    Function = data.Function,
-                                    MessageTitle = data.MessageTitle,
-                                    DataNo = LogDatasCount
-                                } );
-
-                                // LogDatasに保存
-                                m_GeneralClass.LogDatas.Add( data.Clone() );
-                                LogDatasCount++;
+                                ReflectToView( data, logDataCount++ );
                             }
                         }
-                        // 最終読み込み地点を更新
-                        m_LastFilePoint = stream.Length;
+                        m_LastFilePoint = stream.Length; // 最後に読んだ位置を更新
                     }
                 }
                 catch( IOException e )
                 {
                     Console.WriteLine( e.Message );
-                    return;
                 }
             }
         }
 
-        private void AnalyzeEvent(ClassCvpGemLogData data)
+        /// <summary>
+        /// 読み込んだ行からCvpGemLogDataオブジェクトを生成し、解析します。
+        /// </summary>
+        /// <param name="line">読み込んだ行のテキスト。</param>
+        /// <param name="reader">StreamReaderインスタンス。</param>
+        /// <returns>解析されたClassCvpGemLogDataオブジェクト。解析に失敗した場合はnullを返します。</returns>
+        private ClassCvpGemLogData? ParseLine( string line, StreamReader reader )
         {
+            if( !line.Contains( "<Send>" ) && !line.Contains( "<Receive>" ) ) return null;
+
+            ClassCvpGemLogData data = new ClassCvpGemLogData
+            {
+                SendReceiveFlag = line.Contains( "<Send>" ) ? eSendReceiveFlag.Send : eSendReceiveFlag.Receive,
+                Message = ParseMessage( reader, out string messageTitle ),
+                MessageTitle = messageTitle
+            };
+
+            if( !DateTime.TryParseExact( line.Split( new[] { ' ' }, 3 )[0] + " " + line.Split( new[] { ' ' }, 3 )[1],
+                                        "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture,
+                                        DateTimeStyles.None, out DateTime date ) )
+            {
+                return null; // 日付の解析に失敗した場合はスキップ
+            }
+
+            data.Date = date;
+            ExtractSAndF( data );
+
+            // S6F11メッセージの特別な処理
+            if( data.Stream == 6 && data.Function == 11 )
+            {
+                AnalyzeEvent( data );
+            }
+
+            return data;
+        }
+
+        /// <summary>
+        /// StreamReaderからメッセージを読み込み、リストとして返します。
+        /// </summary>
+        /// <param name="reader">読み込むためのStreamReaderインスタンス。</param>
+        /// <param name="messageTitle">読み込まれたメッセージのタイトル。</param>
+        /// <returns>メッセージのリスト。</returns>
+        private List<string> ParseMessage( StreamReader reader, out string messageTitle )
+        {
+            List<string> message = new List<string>();
+            string? line;
+            while( ( line = reader.ReadLine() ) != null && line != "" )
+            {
+                message.Add( line );
+            }
+
+            messageTitle = message.FirstOrDefault() ?? string.Empty;
+            return message;
+        }
+
+        /// <summary>
+        /// メッセージタイトルからStreamとFunctionの番号を抽出します。
+        /// </summary>
+        /// <param name="data">解析データを保持するClassCvpGemLogDataインスタンス。</param>
+        private void ExtractSAndF( ClassCvpGemLogData data )
+        {
+            Regex pattern = new Regex( @"S(\d+)F(\d+)" );
+            Match match = pattern.Match( data.MessageTitle );
+            if( match.Success )
+            {
+                data.Stream = int.Parse( match.Groups[1].Value );
+                data.Function = int.Parse( match.Groups[2].Value );
+            }
+        }
+
+        /// <summary>
+        /// 解析したデータをViewに反映させます。
+        /// </summary>
+        /// <param name="data">反映するデータ。</param>
+        /// <param name="dataNo">データ番号。</param>
+        private void ReflectToView( ClassCvpGemLogData data, int dataNo )
+        {
+            m_vm.LogDatas.Add( new DataGridLogData
+            {
+                Date = data.Date.ToString(),
+                SendReceive = data.SendReceiveFlag.ToString(),
+                Stream = data.Stream,
+                Function = data.Function,
+                MessageTitle = data.MessageTitle,
+                DataNo = dataNo
+            } );
+
+            m_GeneralClass.LogDatas.Add( data.Clone() );
+        }
+
+
+        /// <summary>
+        /// イベントを分析して、イベントの設定に基づいてメッセージタイトルを更新し、VIDリストを処理します。
+        /// </summary>
+        /// <param name="data">分析するイベントログデータ。</param>
+        private void AnalyzeEvent( ClassCvpGemLogData data )
+        {
+            // 効率のためにRegexパターンを事前コンパイル
+            Regex ceidPattern = new Regex( @"<u4 (\d+)>$", RegexOptions.Compiled );
+            Regex reportPattern = new Regex( @"^      <u4 (\d+)>$", RegexOptions.Compiled );
+            Regex vidPattern = new Regex( @"<.*>", RegexOptions.Compiled );
+
             // イベント構成設定を取得
             ClassCvpGemConfig config = m_GeneralClass.CvpConf;
-        
-            // CEIDから設定内容を取得
-            Regex ceidPattern = new Regex(@"<u4 (\d+)>$");
-            Match ceidMatch = ceidPattern.Match(data.Message[(int)eEventStruct.CEID]);
-            int ceid = int.Parse(ceidMatch.Groups[1].Value);
-            ClassCvpGemConfig.Event eventModel = config.GetEventFromCeid(config.eventModel.events, ceid);
-        
-            // イベント名を取得し、メッセージタイトルを更新
-            data.MessageTitle = eventModel.description;
-        
-            int messageCount = (int)eEventStruct.StartReportID;
-            Regex reportPattern = new Regex(@"^      <u4 (\d+)>$");
-            while (data.Message.Count > messageCount)
-            {
-                // レポート番号を取得
-                Match reportMatch = reportPattern.Match(data.Message[messageCount]);
-                if ( !reportMatch.Success )
-                {
-                    // パターンがマッチするまで探す
-                    messageCount++;
-                    continue;
-                }
-                int reportNo = int.Parse(reportMatch.Groups[1].Value);
-                if( !eventModel.reports.Contains(reportNo) )
-                {
-                    messageCount++;
-                    continue;
-                }
-        
-                // レポートにリンクされているVIDをリストで取得
-                List<ClassCvpGemConfig.Variable>? variableList = config.GetVariableListFromReportNo(reportNo);
-                if (variableList == null)
-                {
-                    // VIDが見つからない場合は処理を終了
-                    return;
-                }
-                data.VidList = new List<ClassCvpGemConfig.Variable>(variableList);
-        
-                messageCount += eEventStruct.StartVID - eEventStruct.StartReportID;
 
-                Regex vidPattern = new Regex( @"<.*>" );
-                foreach (ClassCvpGemConfig.Variable variable in data.VidList)
+            // CEIDから設定内容を取得
+            Match ceidMatch = ceidPattern.Match( data.Message[(int)eEventStruct.CEID] );
+            if( !ceidMatch.Success )
+            {
+                return; // CEIDが無効の場合、メソッドを終了
+            }
+            int ceid = int.Parse( ceidMatch.Groups[1].Value );
+            ClassCvpGemConfig.Event eventModel = config.GetEventFromCeid( config.eventModel.events, ceid );
+            if( eventModel == null )
+            {
+                return; // イベントモデルが見つからない場合、メソッドを終了
+            }
+
+            // イベント名でメッセージタイトルを更新
+            data.MessageTitle = eventModel.description;
+
+            int messageCount = (int)eEventStruct.StartReportID;
+            while( data.Message.Count > messageCount )
+            {
+                Match reportMatch = reportPattern.Match( data.Message[messageCount] );
+                if( !reportMatch.Success )
                 {
-                    if (data.Message.Count <= messageCount)
+                    messageCount++;
+                    continue; // マッチしない場合、次のメッセージへスキップ
+                }
+
+                int reportNo = int.Parse( reportMatch.Groups[1].Value );
+                if( !eventModel.reports.Contains( reportNo ) )
+                {
+                    messageCount++;
+                    continue; // レポート番号がイベントモデルに含まれていない場合、スキップ
+                }
+
+                List<ClassCvpGemConfig.Variable>? variableList = config.GetVariableListFromReportNo( reportNo );
+                if( variableList == null )
+                {
+                    return; // レポート番号にリンクされた変数がない場合、メソッドを終了
+                }
+                data.VidList = new List<ClassCvpGemConfig.Variable>( variableList );
+
+                messageCount += eEventStruct.StartVID - eEventStruct.StartReportID;
+                foreach( ClassCvpGemConfig.Variable variable in data.VidList )
+                {
+                    if( data.Message.Count <= messageCount )
                     {
-                        return; // メッセージ数を超えた場合は処理を終了
+                        return; // メッセージが足りない場合、メソッドを終了
                     }
 
                     Match vidMatch = vidPattern.Match( data.Message[messageCount] );
-                    if(  !vidMatch.Success )
+                    if( !vidMatch.Success )
                     {
-                        break; // VIDパターンにマッチしない場合は次のレポート内容を探しに行く
+                        break; // マッチしない場合、次のレポートへスキップ
                     }
-        
-                    // 始めのスペースを取り除く
-                    string sml = data.Message[messageCount];
-                    int index = sml.IndexOf("<");
-                    if (index != -1)
-                    {
-                        // "<" の前の空白を取り除く
-                        sml = sml.Substring(0, index).TrimStart() + sml.Substring(index);
-                    }
-        
+
+                    // "<"の前の先頭スペースを削除
+                    string sml = data.Message[messageCount].TrimStart();
                     variable.sml = sml;
                     messageCount++;
                 }
             }
         }
+
     }
 }
