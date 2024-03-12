@@ -13,6 +13,8 @@ using System.Collections.ObjectModel;
 using System.Windows.Threading;
 using System.IO;
 using System.Windows.Media;
+using System.Windows.Controls;
+using System.Windows;
 
 
 namespace GemLogAnalyzer.ViewModels
@@ -32,6 +34,11 @@ namespace GemLogAnalyzer.ViewModels
         /// シングルトンパターンで実装されたGeneralClassのインスタンス。
         /// </summary>
         private GeneralClass m_GeneralClass = GeneralClass.Instance;
+
+        /// <summary>
+        /// DataGridCvpGemLog
+        /// </summary>
+        public DataGrid m_DataGridCvpGemLog = new DataGrid();
         #endregion
 
         //////////////////////////////////////////////////////
@@ -67,6 +74,11 @@ namespace GemLogAnalyzer.ViewModels
         /// ファイル選択ダイアログ表示コマンド。
         /// </summary>
         private CommandOpenFileDialog m_CommandOpenFileDialog;
+
+        /// <summary>
+        /// DataGridCvpGemLog(ScrollViewer更新用)
+        /// </summary>
+        private CommandSetDataGrid m_CommandSetDataGrid;
         #endregion
 
         //////////////////////////////////////////////////////
@@ -102,6 +114,11 @@ namespace GemLogAnalyzer.ViewModels
         /// ファイル選択ダイアログ表示コマンド。
         /// </summary>
         public CommandOpenFileDialog CommandOpenFileDialog => m_CommandOpenFileDialog;
+
+        /// <summary>
+        /// m_DataGridCvpGemLogに登録
+        /// </summary>
+        public CommandSetDataGrid CommandSetDataGrid => m_CommandSetDataGrid;
         #endregion
 
         //////////////////////////////////////////////////////
@@ -217,6 +234,7 @@ namespace GemLogAnalyzer.ViewModels
             m_CommandOpenSettingDialog = new CommandOpenSettingDialog( this );
             m_CommandShowEventDetail = new CommandShowEventDetail( this );
             m_CommandOpenFileDialog = new CommandOpenFileDialog( this );
+            m_CommandSetDataGrid = new CommandSetDataGrid( this );
 
             // タイマーを設置して、定期的にファイルの更新を確認する。
             DispatcherTimer timer = new DispatcherTimer();
@@ -254,10 +272,50 @@ namespace GemLogAnalyzer.ViewModels
                 }
                 if( lastTime > m_GeneralClass.AnaConf.LogFileDate )
                 {
-                    // 更新があったら再度読み込み
+                    // ScrollViewerを取得
+                    if( m_DataGridCvpGemLog == null )
+                    {
+                        return;
+                    }
+                    var scrollViewer = GetScrollViewer( m_DataGridCvpGemLog );
+                    bool isAtBottom = false;
+
+                    if( scrollViewer != null )
+                    {
+                        // 現在のスクロール位置が一番下にあるかを判断
+                        isAtBottom = scrollViewer.VerticalOffset >= scrollViewer.ScrollableHeight;
+                    }
+
+                    // ログを再読み込み
                     m_CommandReadLog.Execute( null );
+
+                    // スクロール位置が一番下だった場合、再度一番下にスクロール
+                    if( isAtBottom && scrollViewer != null )
+                    {
+                        scrollViewer.ScrollToEnd();
+                    }
                 }
             }
+        }
+
+        // DataGrid内のScrollViewerを取得するヘルパーメソッド
+        private ScrollViewer GetScrollViewer( DependencyObject dependencyObject )
+        {
+            if( dependencyObject is ScrollViewer )
+            {
+                return dependencyObject as ScrollViewer;
+            }
+
+            for( int i = 0; i < VisualTreeHelper.GetChildrenCount( dependencyObject ); i++ )
+            {
+                var child = VisualTreeHelper.GetChild( dependencyObject, i );
+                var result = GetScrollViewer( child );
+                if( result != null )
+                {
+                    return result;
+                }
+            }
+            return null;
         }
     }
 
