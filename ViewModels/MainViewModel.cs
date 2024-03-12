@@ -15,6 +15,8 @@ using System.IO;
 using System.Windows.Media;
 using System.Windows.Controls;
 using System.Windows;
+using System.Windows.Data;
+using System.Globalization;
 
 
 namespace GemLogAnalyzer.ViewModels
@@ -68,7 +70,7 @@ namespace GemLogAnalyzer.ViewModels
         /// <summary>
         /// Detailを表示するコマンド。
         /// </summary>
-        private CommandShowEventDetail m_CommandShowEventDetail;
+        private CommandShowDetail m_CommandShowDetail;
 
         /// <summary>
         /// ファイル選択ダイアログ表示コマンド。
@@ -108,7 +110,7 @@ namespace GemLogAnalyzer.ViewModels
         /// <summary>
         /// Detailを表示するコマンド。
         /// </summary>
-        public CommandShowEventDetail CommandShowEventDetail => m_CommandShowEventDetail;
+        public CommandShowDetail CommandShowDetail => m_CommandShowDetail;
 
         /// <summary>
         /// ファイル選択ダイアログ表示コマンド。
@@ -232,7 +234,7 @@ namespace GemLogAnalyzer.ViewModels
             m_CommandLoadConf = new CommandLoadCvpConf( this );
             m_CommandReadLog = new CommandReadLog( this );
             m_CommandOpenSettingDialog = new CommandOpenSettingDialog( this );
-            m_CommandShowEventDetail = new CommandShowEventDetail( this );
+            m_CommandShowDetail = new CommandShowDetail( this );
             m_CommandOpenFileDialog = new CommandOpenFileDialog( this );
             m_CommandSetDataGrid = new CommandSetDataGrid( this );
 
@@ -490,4 +492,45 @@ namespace GemLogAnalyzer.ViewModels
             Value = string.Empty;
         }
     }
+
+    public class ParameterToColorConverter : IValueConverter
+    {
+        public object Convert( object value, Type targetType, object parameter, CultureInfo culture )
+        {
+            // ここにパラメータの値に基づくロジックを実装します。
+            if( value is string sml )
+            {
+                // smlのタイプがコンフィグと一致しているか確認
+                if( CheckSmlType( sml ) )
+                {
+                    // おかしかったらRedに変更
+                    return Brushes.Red;
+                }
+            }
+
+            return Brushes.Black;
+        }
+
+        public object ConvertBack( object value, Type targetType, object parameter, CultureInfo culture )
+        {
+            throw new NotImplementedException();
+        }
+
+        private bool CheckSmlType( string sml )
+        {
+            GeneralClass generalClass = GeneralClass.Instance;
+            if( generalClass == null )
+                return true;
+
+            ClassCvpGemConfig gemConf = generalClass.CvpConf;
+            if( gemConf == null )
+                return true;
+
+
+
+
+            return false;
+        }
+    }
+
 }

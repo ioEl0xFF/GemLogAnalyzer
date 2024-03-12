@@ -8,7 +8,7 @@ using System.Windows.Input;
 
 namespace GemLogAnalyzer.Common
 {
-    public class CommandShowEventDetail : ICommand
+    public class CommandShowDetail : ICommand
     {
         /// <summary>
         /// MainViewModelのパラメータ
@@ -25,7 +25,7 @@ namespace GemLogAnalyzer.Common
         /// </summary>
         ClassCvpGemLogData m_LogData;
 
-        public CommandShowEventDetail(MainViewModel vm)
+        public CommandShowDetail(MainViewModel vm)
         {
             m_vm = vm;
             m_GeneralClass = GeneralClass.Instance;

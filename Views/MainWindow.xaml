@@ -55,7 +55,7 @@
                                            CommandParameter="{Binding ElementName=DataGridCvpGemLog}"/>
                 </i:EventTrigger>
                 <i:EventTrigger EventName="SelectionChanged" >
-                    <i:InvokeCommandAction Command="{Binding CommandShowEventDetail}"
+                    <i:InvokeCommandAction Command="{Binding CommandShowDetail}"
                                            CommandParameter="{Binding SelectedItem}" />
                 </i:EventTrigger>
             </i:Interaction.Triggers>
