@@ -11,6 +11,7 @@ using System.IO;
 using System.Windows.Media;
 using System.Globalization;
 using GemLogAnalyzer.Models;
+using System.Runtime.CompilerServices;
 
 namespace GemLogAnalyzer.Common
 {
@@ -26,10 +27,17 @@ namespace GemLogAnalyzer.Common
         /// </summary>
         GeneralClass m_GeneralClass;
 
+        /// <summary>
+        /// ログファイル最終読み込み地点
+        /// </summary>
+        private long m_LastFilePoint;
+
+
         public CommandReadLog(MainViewModel vm)
         {
             m_vm = vm;
             m_GeneralClass = GeneralClass.Instance;
+            m_LastFilePoint = 0;
         }
 
         public event EventHandler? CanExecuteChanged
@@ -71,7 +79,17 @@ namespace GemLogAnalyzer.Common
             }
 
             // ファイル名が正しそうやったら読み込み
-            m_GeneralClass.AnaConf.LogFilePath = filePath;
+            if( filePath != m_GeneralClass.AnaConf.LogFilePath )
+            {
+                // 前回読み込んだファイルと違っていたら全読み込み
+                m_GeneralClass.AnaConf.LogFilePath = filePath;
+                m_LastFilePoint = 0;
+
+                // DataGridをクリア
+                m_vm.LogDatas.Clear();
+                // Logデータもクリア
+                m_GeneralClass.LogDatas.Clear();
+            }
             return true;
         }
 
@@ -93,107 +111,125 @@ namespace GemLogAnalyzer.Common
         /// </summary>
         private void ReadCvpGemLogFile(string argFilePath )
         {
-            // DataGridをクリア
-            m_vm.LogDatas.Clear();
-
-            // Logデータもクリア
-            m_GeneralClass.LogDatas.Clear();
-            int LogDatasCount = 0;
-
-            try
+            using( FileStream stream = new FileStream( argFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite ) )
             {
-                // 1行ずつ読み込み
-                using( StreamReader reader = new StreamReader( argFilePath ) )
+                int LogDatasCount = 0;
+
+                if( stream.Length > m_LastFilePoint && m_LastFilePoint != 0 )
                 {
-                    string? readLine;
-                    // ファイルの終わりまで読み込む
-                    while((readLine = reader.ReadLine()) != null )
+                    // ファイルポインタを前回の最終読み込み位置に指定
+                    stream.Seek( m_LastFilePoint, SeekOrigin.Begin );
+                    if( m_vm.LogDatas.Count > 0 )
                     {
-                        string line = readLine;
-                        ClassCvpGemLogData data = new ClassCvpGemLogData();
-                        
-                        // SendReceiveFlag //////////
-                        // <Send>
-                        if( line.Contains("<Send>") )
-                        {
-                            data.SendReceiveFlag = eSendReceiveFlag.Send;
-                        }
-
-                        // <Receive>
-                        if( line.Contains( "<Receive>" ) )
-                        {
-                            data.SendReceiveFlag = eSendReceiveFlag.Receive;
-                        }
-
-                        if( data.SendReceiveFlag != eSendReceiveFlag.None )
-                        {
-                            // Date /////////////////////
-                            string format = "yyyy-MM-dd HH:mm:ss";
-
-                            // 日時の部分のみを取り出すために、スペースで分割して最初の2つの要素を結合します
-                            string dateTimePart = line.Split(new[] {' '}, 3)[0] + " " + line.Split(new[] {' '}, 3)[1];
-
-                            try
-                            {
-                                // 日時フォーマットを指定してDateTime型に変換
-                                data.Date = DateTime.ParseExact( dateTimePart, format, CultureInfo.InvariantCulture );
-                            }
-                            catch( FormatException )
-                            {
-                                continue;
-                            }
-
-                            // Message //////////
-                            while( ( readLine = reader.ReadLine() ) != null )
-                            {
-                                if( readLine == "" )
-                                {
-                                    break;
-                                }
-                                line = readLine;
-                                data.Message.Add(line);
-                            }
-                            data.MessageTitle = data.Message[0];
-
-                            // S ////////////////
-                            Regex pattern = new Regex( @"S(\d+)F" );
-                            Match match = pattern.Match(data.MessageTitle);
-                            data.Stream = int.Parse( match.Groups[1].Value );
-
-                            // F ////////////////
-                            pattern = new Regex( @"F(\d+)" );
-                            match = pattern.Match(data.MessageTitle);
-                            data.Function = int.Parse( match.Groups[1].Value );
-
-                            // S6F11の時の処理
-                            if( data.Stream == 6 && data.Function == 11 )
-                            {
-                                AnalyzeEvent( data );
-                            }
-
-                            // Viewに反映
-                            m_vm.LogDatas.Add( new DataGridLogData
-                            {
-                                Date = data.Date.ToString(),
-                                SendReceive = data.SendReceiveFlag.ToString(),
-                                Stream = data.Stream,
-                                Function = data.Function,
-                                MessageTitle = data.MessageTitle,
-                                DataNo = LogDatasCount
-                            } ) ;
-
-                            // LogDatasに保存
-                            m_GeneralClass.LogDatas.Add( data.Clone() );
-                            LogDatasCount++;
-                        }
+                        LogDatasCount = m_vm.LogDatas.LastOrDefault().DataNo + 1;
                     }
+                } else
+                {
+                    // 前回読み込んだファイルと同じ名前でも、ファイルのサイズが減っていたら全読み込み
+                    m_LastFilePoint = 0;
 
+                    // DataGridをクリア
+                    m_vm.LogDatas.Clear();
+                    // Logデータもクリア
+                    m_GeneralClass.LogDatas.Clear();
                 }
-            }
-            catch(IOException e )
-            {
-                Console.WriteLine( e.Message );
-                return;
+
+                try
+                {
+                    // 1行ずつ読み込み
+                    using( StreamReader reader = new StreamReader( stream ) )
+                    {
+                        string? readLine;
+                        // ファイルの終わりまで読み込む
+                        while( ( readLine = reader.ReadLine() ) != null )
+                        {
+                            string line = readLine;
+                            ClassCvpGemLogData data = new ClassCvpGemLogData();
+
+                            // SendReceiveFlag //////////
+                            // <Send>
+                            if( line.Contains( "<Send>" ) )
+                            {
+                                data.SendReceiveFlag = eSendReceiveFlag.Send;
+                            }
+
+                            // <Receive>
+                            if( line.Contains( "<Receive>" ) )
+                            {
+                                data.SendReceiveFlag = eSendReceiveFlag.Receive;
+                            }
+
+                            if( data.SendReceiveFlag != eSendReceiveFlag.None )
+                            {
+                                // Date /////////////////////
+                                string format = "yyyy-MM-dd HH:mm:ss";
+
+                                // 日時の部分のみを取り出すために、スペースで分割して最初の2つの要素を結合します
+                                string dateTimePart = line.Split( new[] { ' ' }, 3 )[0] + " " + line.Split( new[] { ' ' }, 3 )[1];
+
+                                try
+                                {
+                                    // 日時フォーマットを指定してDateTime型に変換
+                                    data.Date = DateTime.ParseExact( dateTimePart, format, CultureInfo.InvariantCulture );
+                                }
+                                catch( FormatException )
+                                {
+                                    continue;
+                                }
+
+                                // Message //////////
+                                while( ( readLine = reader.ReadLine() ) != null )
+                                {
+                                    if( readLine == "" )
+                                    {
+                                        break;
+                                    }
+                                    line = readLine;
+                                    data.Message.Add( line );
+                                }
+                                data.MessageTitle = data.Message[0];
+
+                                // S ////////////////
+                                Regex pattern = new Regex( @"S(\d+)F" );
+                                Match match = pattern.Match( data.MessageTitle );
+                                data.Stream = int.Parse( match.Groups[1].Value );
+
+                                // F ////////////////
+                                pattern = new Regex( @"F(\d+)" );
+                                match = pattern.Match( data.MessageTitle );
+                                data.Function = int.Parse( match.Groups[1].Value );
+
+                                // S6F11の時の処理
+                                if( data.Stream == 6 && data.Function == 11 )
+                                {
+                                    AnalyzeEvent( data );
+                                }
+
+                                // Viewに反映
+                                m_vm.LogDatas.Add( new DataGridLogData
+                                {
+                                    Date = data.Date.ToString(),
+                                    SendReceive = data.SendReceiveFlag.ToString(),
+                                    Stream = data.Stream,
+                                    Function = data.Function,
+                                    MessageTitle = data.MessageTitle,
+                                    DataNo = LogDatasCount
+                                } );
+
+                                // LogDatasに保存
+                                m_GeneralClass.LogDatas.Add( data.Clone() );
+                                LogDatasCount++;
+                            }
+                        }
+                        // 最終読み込み地点を更新
+                        m_LastFilePoint = stream.Length;
+                    }
+                }
+                catch( IOException e )
+                {
+                    Console.WriteLine( e.Message );
+                    return;
+                }
             }
         }
 

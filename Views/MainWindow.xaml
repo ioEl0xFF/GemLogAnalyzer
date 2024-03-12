@@ -50,6 +50,10 @@
 
             <!-- DataGridのイベント設定 -->
             <i:Interaction.Triggers>
+                <i:EventTrigger EventName="Loaded" >
+                    <i:InvokeCommandAction Command="{Binding CommandSetDataGrid}"
+                                           CommandParameter="{Binding ElementName=DataGridCvpGemLog}"/>
+                </i:EventTrigger>
                 <i:EventTrigger EventName="SelectionChanged" >
                     <i:InvokeCommandAction Command="{Binding CommandShowEventDetail}"
                                            CommandParameter="{Binding SelectedItem}" />
