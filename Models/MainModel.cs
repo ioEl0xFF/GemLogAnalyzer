@@ -17,5 +17,7 @@ namespace GemLogAnalyzer.Models
         public DataGridLogData SelectedItem { get; set; } = new DataGridLogData();
         public string DetailMessageTitle { get; set; } = string.Empty;
         public string DetailDate { get; set; } = string.Empty;
+        public string FilterPattern {  get; set; } = string.Empty;
+        public ObservableCollection<DataGridLogData> FilteredLogDatas = new ObservableCollection<DataGridLogData>();
     }
 }

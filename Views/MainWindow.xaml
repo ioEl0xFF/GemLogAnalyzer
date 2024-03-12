@@ -32,10 +32,10 @@
             <ColumnDefinition Width="9*"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-
-        <!-- ログ表示用のDataGrid -->
-        <DataGrid Name="DataGridCvpGemLog"
-                  ItemsSource="{Binding LogDatas}"
+        <DockPanel Grid.Row="0" Grid.RowSpan="1">
+            <!-- ログ表示用のDataGrid -->
+            <DataGrid Name="DataGridCvpGemLog"
+                  ItemsSource="{Binding FilteredLogDatas}"
                   SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                   AutoGenerateColumns="False"
                   Style="{StaticResource MaterialDesignDataGrid}"
@@ -48,41 +48,54 @@
                   VirtualizingPanel.IsVirtualizing="True"
                   VirtualizingPanel.VirtualizationMode="Recycling">
 
-            <!-- DataGridのイベント設定 -->
-            <i:Interaction.Triggers>
-                <i:EventTrigger EventName="Loaded" >
-                    <i:InvokeCommandAction Command="{Binding CommandSetDataGrid}"
+                <!-- DataGridのイベント設定 -->
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="Loaded" >
+                        <i:InvokeCommandAction Command="{Binding CommandSetDataGrid}"
                                            CommandParameter="{Binding ElementName=DataGridCvpGemLog}"/>
-                </i:EventTrigger>
-                <i:EventTrigger EventName="SelectionChanged" >
-                    <i:InvokeCommandAction Command="{Binding CommandShowEventDetail}"
+                    </i:EventTrigger>
+                    <i:EventTrigger EventName="SelectionChanged" >
+                        <i:InvokeCommandAction Command="{Binding CommandShowEventDetail}"
                                            CommandParameter="{Binding SelectedItem}" />
-                </i:EventTrigger>
-            </i:Interaction.Triggers>
-            <!-- DataGridの色設定 -->
-            <DataGrid.RowStyle>
-                <Style TargetType="DataGridRow">
-                    <Style.Triggers>
-                        <MultiDataTrigger>
-                            <MultiDataTrigger.Conditions>
-                                <!-- S6F11 イベントの場合、背景色を変更 -->
-                                <Condition Binding="{Binding Stream}" Value="6"/>
-                                <Condition Binding="{Binding Function}" Value="11"/>
-                            </MultiDataTrigger.Conditions>
-                            <Setter Property="Background" Value="LightYellow"/>
-                        </MultiDataTrigger>
-                    </Style.Triggers>
-                </Style>
-            </DataGrid.RowStyle>
-            <!-- DataGridの列定義 -->
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Time" Width="150" Binding="{Binding Date}" />
-                <DataGridTextColumn Header="Send/Receive" Width="120" Binding="{Binding SendReceive}"/>
-                <DataGridTextColumn Header="Stream" Width="90" Binding="{Binding Stream}"/>
-                <DataGridTextColumn Header="Function" Width="90" Binding="{Binding Function}"/>
-                <DataGridTextColumn Header="Message" Width="*" Binding="{Binding MessageTitle}"/>
-            </DataGrid.Columns>
-        </DataGrid>
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+                <!-- DataGridの色設定 -->
+                <DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow">
+                        <Style.Triggers>
+                            <MultiDataTrigger>
+                                <MultiDataTrigger.Conditions>
+                                    <!-- S6F11 イベントの場合、背景色を変更 -->
+                                    <Condition Binding="{Binding Stream}" Value="6"/>
+                                    <Condition Binding="{Binding Function}" Value="11"/>
+                                </MultiDataTrigger.Conditions>
+                                <Setter Property="Background" Value="LightYellow"/>
+                            </MultiDataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </DataGrid.RowStyle>
+                <!-- DataGridの列定義 -->
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Time" Width="150" Binding="{Binding Date}" />
+                    <DataGridTextColumn Header="Send/Receive" Width="120" Binding="{Binding SendReceive}"/>
+                    <DataGridTextColumn Header="Stream" Width="90" Binding="{Binding Stream}"/>
+                    <DataGridTextColumn Header="Function" Width="90" Binding="{Binding Function}"/>
+                    <DataGridTextColumn Header="Message" Width="*" Binding="{Binding MessageTitle}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </DockPanel>
+        <DockPanel Grid.Row="1">
+            <!-- ファイルパスを入力するTextBox -->
+            <TextBox x:Name="FilterCvpGemLog"
+                     Style="{StaticResource MaterialDesignTextBox}" VerticalAlignment="Center"
+                     Margin="30,0,0,0" TextWrapping="NoWrap" Height="25"
+                     materialDesign:HintAssist.Hint="Enter filter pattern."
+                     Text="{Binding FilterPattern, UpdateSourceTrigger=PropertyChanged}">
+                <TextBox.InputBindings>
+                    <KeyBinding Gesture="Enter" Command="{Binding CommandFilterCvpGemLog}"/>
+                </TextBox.InputBindings>
+            </TextBox>
+        </DockPanel>
 
         <!-- ファイルパス入力とフォルダ選択のためのStackPanel -->
         <DockPanel Grid.Row="1" Grid.Column="1" LastChildFill="True" Margin="0,5,0,0">
@@ -96,7 +109,7 @@
             <!-- ファイルパスを入力するTextBox -->
             <TextBox x:Name="TextBoxCvpGemLogFilePath"
                      Style="{StaticResource MaterialDesignTextBox}" VerticalAlignment="Center"
-                     Margin="30,0,0,0" TextWrapping="Wrap" Height="25"
+                     Margin="30,0,0,0" TextWrapping="NoWrap" Height="25"
                      materialDesign:HintAssist.Hint="Enter file path of CvpGem.log"
                      Text="{Binding CvpGemLogFilePath, UpdateSourceTrigger=PropertyChanged}">
                 <TextBox.InputBindings>

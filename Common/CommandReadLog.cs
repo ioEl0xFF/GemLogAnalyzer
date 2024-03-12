@@ -150,6 +150,7 @@ namespace GemLogAnalyzer.Common
                     Console.WriteLine( e.Message );
                 }
             }
+            m_vm.CommandFilterCvpGemLog.Execute( this );
         }
 
         /// <summary>

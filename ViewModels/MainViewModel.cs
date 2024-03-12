@@ -79,6 +79,11 @@ namespace GemLogAnalyzer.ViewModels
         /// DataGridCvpGemLog(ScrollViewer更新用)
         /// </summary>
         private CommandSetDataGrid m_CommandSetDataGrid;
+
+        /// <summary>
+        /// DataGridCvpGemLogフィルタコマンド
+        /// </summary>
+        private CommandFilterCvpGemLog m_CommandFilterCvpGemLog;
         #endregion
 
         //////////////////////////////////////////////////////
@@ -119,6 +124,11 @@ namespace GemLogAnalyzer.ViewModels
         /// m_DataGridCvpGemLogに登録
         /// </summary>
         public CommandSetDataGrid CommandSetDataGrid => m_CommandSetDataGrid;
+
+        /// <summary>
+        /// DataGridCvpGemLogのフィルタ処理
+        /// </summary>
+        public CommandFilterCvpGemLog CommandFilterCvpGemLog => m_CommandFilterCvpGemLog;
         #endregion
 
         //////////////////////////////////////////////////////
@@ -189,7 +199,33 @@ namespace GemLogAnalyzer.ViewModels
             }
         }
 
-        // Detail ///////////////
+        // DataGridCvpGemLog用フィルター //////////////
+        public ObservableCollection<DataGridLogData> FilteredLogDatas
+        {
+            get => m_MainModel.FilteredLogDatas;
+            set
+            {
+                m_MainModel.FilteredLogDatas = value;
+                NotifyPropertyChanged();
+            }
+        }
+        /// <summary>
+        /// メッセージのフィルタ設定
+        /// </summary>
+        public string FilterPattern
+        {
+            get => m_MainModel.FilterPattern;
+            set
+            {
+                if( m_MainModel.FilterPattern != value )
+                {
+                    m_MainModel.FilterPattern = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
+
+        // Detail /////////////////////////////////////
         /// <summary>
         /// Time
         /// </summary>
@@ -235,6 +271,7 @@ namespace GemLogAnalyzer.ViewModels
             m_CommandShowEventDetail = new CommandShowEventDetail( this );
             m_CommandOpenFileDialog = new CommandOpenFileDialog( this );
             m_CommandSetDataGrid = new CommandSetDataGrid( this );
+            m_CommandFilterCvpGemLog = new CommandFilterCvpGemLog( this );
 
             // タイマーを設置して、定期的にファイルの更新を確認する。
             DispatcherTimer timer = new DispatcherTimer();
