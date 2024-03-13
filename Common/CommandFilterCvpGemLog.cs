@@ -17,9 +17,15 @@ namespace GemLogAnalyzer.Common
         /// </summary>
         MainViewModel m_MainViewModel;
 
+        /// <summary>
+        /// フィルターパターン
+        /// </summary>
+        string m_FilterPattern;
+
         public CommandFilterCvpGemLog(MainViewModel mainViewModel)
         {
             m_MainViewModel = mainViewModel;
+            m_FilterPattern = string.Empty;
         }
 
         public event EventHandler? CanExecuteChanged
@@ -36,6 +42,19 @@ namespace GemLogAnalyzer.Common
         /// <exception cref="NotImplementedException"></exception>
         public bool CanExecute( object? parameter )
         {
+            m_FilterPattern = m_MainViewModel.FilterPattern;
+            if( !string.IsNullOrWhiteSpace( m_FilterPattern ) )
+            {
+                // 文字列が何かしら入っているときは、正規表現として正しいか判定。
+                try
+                {
+                    Regex regex = new Regex( m_FilterPattern );
+                }
+                catch( ArgumentException )
+                {
+                    m_FilterPattern = "";
+                }
+            }
             return true;
         }
 
@@ -46,13 +65,13 @@ namespace GemLogAnalyzer.Common
         /// <exception cref="NotImplementedException"></exception>
         public void Execute( object? parameter )
         {
-            if( string.IsNullOrWhiteSpace( m_MainViewModel.FilterPattern ) )
+            if( string.IsNullOrWhiteSpace( m_FilterPattern ) )
             {
                 m_MainViewModel.FilteredLogDatas = new ObservableCollection<DataGridLogData>( m_MainViewModel.LogDatas );
             } else
             {
                 // 正規表現パターンをFilterPatternから取得
-                string pattern = m_MainViewModel.FilterPattern;
+                string pattern = m_FilterPattern;
 
                 // フィルタリング処理
                 var result = m_MainViewModel.LogDatas.Where( d =>
