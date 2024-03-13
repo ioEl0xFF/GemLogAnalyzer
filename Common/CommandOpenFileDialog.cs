@@ -99,9 +99,9 @@ namespace GemLogAnalyzer.Common
                     m_MainViewModel.CvpGemLogFilePath = filePath;
                     m_GeneralClass.AnaConf.LogFilePath = filePath;
                     CommandReadLog commandReadLog = new CommandReadLog( m_MainViewModel );
-                    if( commandReadLog.CanExecute( parameter ) )
+                    if( commandReadLog.CanExecute( "Init" ) )
                     {
-                        commandReadLog.Execute( parameter );
+                        commandReadLog.Execute( "Init" );
                     }
                 }else
                 if( from == "SettingDialog" )
