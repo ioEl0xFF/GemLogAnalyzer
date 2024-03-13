@@ -79,7 +79,8 @@ namespace GemLogAnalyzer.Common
             }
 
             // ファイル名が正しそうやったら読み込み
-            if( filePath != m_GeneralClass.AnaConf.LogFilePath )
+            if( filePath != m_GeneralClass.AnaConf.LogFilePath ||
+                (parameter != null && parameter is string paramStr && paramStr == "Init") )
             {
                 // 前回読み込んだファイルと違っていたら全読み込み
                 m_GeneralClass.AnaConf.LogFilePath = filePath;

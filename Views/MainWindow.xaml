@@ -100,7 +100,7 @@
                      materialDesign:HintAssist.Hint="Enter file path of CvpGem.log"
                      Text="{Binding CvpGemLogFilePath, UpdateSourceTrigger=PropertyChanged}">
                 <TextBox.InputBindings>
-                    <KeyBinding Gesture="Enter" Command="{Binding CommandReadLog}"/>
+                    <KeyBinding Gesture="Enter" Command="{Binding CommandReadLog}" CommandParameter="Init" />
                 </TextBox.InputBindings>
             </TextBox>
         </DockPanel>
