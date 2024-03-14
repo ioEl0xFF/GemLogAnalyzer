@@ -46,7 +46,7 @@
                   EnableColumnVirtualization="True"
                   EnableRowVirtualization="True"
                   VirtualizingPanel.IsVirtualizing="True"
-                  VirtualizingPanel.VirtualizationMode="Recycling">
+                  VirtualizingPanel.VirtualizationMode="Standard">
 
                 <!-- DataGridのイベント設定 -->
                 <i:Interaction.Triggers>

@@ -315,21 +315,33 @@ namespace GemLogAnalyzer.ViewModels
                         return;
                     }
                     var scrollViewer = GetScrollViewer( m_DataGridCvpGemLog );
-                    bool isAtBottom = false;
+                    bool isAtBottomScroll = false;
 
                     if( scrollViewer != null )
                     {
                         // 現在のスクロール位置が一番下にあるかを判断
-                        isAtBottom = scrollViewer.VerticalOffset >= scrollViewer.ScrollableHeight;
+                        isAtBottomScroll = scrollViewer.VerticalOffset >= scrollViewer.ScrollableHeight;
+                    }
+
+                    // SelectedItemが最後のセルを選択しているか判定
+                    bool isTheLastCell = false;
+                    if( FilteredLogDatas.Count > 0 && SelectedItem != null )
+                    {
+                        isTheLastCell = FilteredLogDatas[FilteredLogDatas.Count - 1].DataNo == SelectedItem.DataNo;
                     }
 
                     // ログを再読み込み
                     m_CommandReadLog.Execute( null );
 
                     // スクロール位置が一番下だった場合、再度一番下にスクロール
-                    if( isAtBottom && scrollViewer != null )
+                    if( isAtBottomScroll && scrollViewer != null )
                     {
                         scrollViewer.ScrollToEnd();
+                    }
+                    // 最後のセルを選択していた場合、再度最後のセルを選択
+                    if( isTheLastCell && FilteredLogDatas.Count > 0 ) 
+                    {
+                        SelectedItem = FilteredLogDatas[ FilteredLogDatas.Count - 1 ];
                     }
                 }
             }
@@ -457,8 +469,18 @@ namespace GemLogAnalyzer.ViewModels
             SendReceive = string.Empty;
             Stream = 0;
             Function = 0;
-            messageTitle = string.Empty;
+            MessageTitle = string.Empty;
             DataNo = 0;
+        }
+
+        public DataGridLogData( DataGridLogData data )
+        {
+            Date = data.Date;
+            SendReceive = data.SendReceive;
+            Stream = data.Stream;
+            Function = data.Function;
+            MessageTitle = data.MessageTitle;
+            DataNo = data.DataNo;
         }
     }
 

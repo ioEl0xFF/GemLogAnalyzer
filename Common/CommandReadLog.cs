@@ -137,7 +137,7 @@ namespace GemLogAnalyzer.Common
                         string? line;
                         while( ( line = reader.ReadLine() ) != null )
                         {
-                            ClassCvpGemLogData data = ParseLine( line, reader );
+                            ClassCvpGemLogData? data = ParseLine( line, reader );
                             if( data != null ) // データが正常に解析された場合
                             {
                                 ReflectToView( data, logDataCount++ );

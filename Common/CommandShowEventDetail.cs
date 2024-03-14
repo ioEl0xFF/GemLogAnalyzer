@@ -50,7 +50,7 @@ namespace GemLogAnalyzer.Common
             DataGridLogData? selectedItem = parameter as DataGridLogData;
 
             // selectedItemがnullの場合は、コマンドを実行できない
-            if( selectedItem == null ) return false;
+            if( selectedItem == null || selectedItem.Date == "" ) return false;
 
             if( m_GeneralClass.LogDatas[selectedItem.DataNo] == null ) return false;
 
