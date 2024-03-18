@@ -341,7 +341,7 @@ namespace GemLogAnalyzer.ViewModels
                     // 最後のセルを選択していた場合、再度最後のセルを選択
                     if( isTheLastCell && FilteredLogDatas.Count > 0 ) 
                     {
-                        SelectedItem = FilteredLogDatas[ FilteredLogDatas.Count - 1 ];
+                        m_DataGridCvpGemLog.SelectedItem = FilteredLogDatas[FilteredLogDatas.Count - 1];
                     }
                 }
             }
