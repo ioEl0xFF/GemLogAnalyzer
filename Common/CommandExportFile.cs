@@ -114,6 +114,8 @@ namespace GemLogAnalyzer.Common
         private bool ExportLogFile( List<string> argLogDataList )
         {
             bool ret = true;
+            int maxLength = argLogDataList.Where( x => x.Contains( "<" ) && x.Contains( ">" ) ).Max( x => x.Length ) + 1;
+            string debug_LongestString = argLogDataList.Where( x => x.Contains( "<" ) && x.Contains( ">" ) ).OrderByDescending(x => x.Length ).First();
 
             for( int logDataCount = 0; logDataCount < argLogDataList.Count; logDataCount++ )
             {
@@ -124,7 +126,7 @@ namespace GemLogAnalyzer.Common
                 // S6F11の時はイベント名とVID名を追記
                 if( match.Success && match.Groups[1].Value == "6" && match.Groups[2].Value == "11" )
                 {
-                    logDataCount = AddDetails( argLogDataList, logDataCount, 35 );
+                    logDataCount = AddDetails( argLogDataList, logDataCount, maxLength );
                 }
             }
 
@@ -172,7 +174,7 @@ namespace GemLogAnalyzer.Common
             // argLogDataList.Insert(logDataCount, $"[{eventModel.description}]" );
             // logDataCount++;
             // lastLine++;
-            argLogDataList[argLogDataCount] = argLogDataList[argLogDataCount].PadRight( argMaxLength + 5 ) + "// " + $"{eventModel.description}";
+            argLogDataList[argLogDataCount] = argLogDataList[argLogDataCount].PadRight( argMaxLength ) + "// " + $"{eventModel.description}";
 
 
             // CVP側でイベント名を記載していた場合は削除
@@ -227,7 +229,7 @@ namespace GemLogAnalyzer.Common
                     // VID名を追記
                     if( variable != null && !string.IsNullOrEmpty( variable.description ) )
                     {
-                        argLogDataList[argLogDataCount] = argLogDataList[argLogDataCount].PadRight(argMaxLength + 5) + "// " + $"{variable.id}".PadLeft(3) + $" : {variable.description}";
+                        argLogDataList[argLogDataCount] = argLogDataList[argLogDataCount].PadRight(argMaxLength) + "// " + $"{variable.id}".PadLeft(3) + $" : {variable.description}";
                     }
                     argLogDataCount++;
                 }
