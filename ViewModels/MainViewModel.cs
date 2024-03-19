@@ -84,6 +84,11 @@ namespace GemLogAnalyzer.ViewModels
         /// DataGridCvpGemLogフィルタコマンド
         /// </summary>
         private CommandFilterCvpGemLog m_CommandFilterCvpGemLog;
+
+        /// <summary>
+        /// Exportコマンド
+        /// </summary>
+        private CommandExportFile m_CommandExportFile;
         #endregion
 
         //////////////////////////////////////////////////////
@@ -129,6 +134,11 @@ namespace GemLogAnalyzer.ViewModels
         /// DataGridCvpGemLogのフィルタ処理
         /// </summary>
         public CommandFilterCvpGemLog CommandFilterCvpGemLog => m_CommandFilterCvpGemLog;
+
+        /// <summary>
+        /// ファイルExport処理
+        /// </summary>
+        public CommandExportFile CommandExportFile => m_CommandExportFile;
         #endregion
 
         //////////////////////////////////////////////////////
@@ -272,6 +282,7 @@ namespace GemLogAnalyzer.ViewModels
             m_CommandOpenFileDialog = new CommandOpenFileDialog( this );
             m_CommandSetDataGrid = new CommandSetDataGrid( this );
             m_CommandFilterCvpGemLog = new CommandFilterCvpGemLog( this );
+            m_CommandExportFile = new CommandExportFile( this );
 
             // タイマーを設置して、定期的にファイルの更新を確認する。
             DispatcherTimer timer = new DispatcherTimer();

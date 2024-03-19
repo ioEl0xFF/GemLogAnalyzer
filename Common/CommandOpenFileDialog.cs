@@ -77,24 +77,24 @@ namespace GemLogAnalyzer.Common
                 from = paramStr;
             }
 
-            if( File.Exists( m_GeneralClass.AnaConf.LogFilePath ) && from == "MainWindow" )
+            if( File.Exists( m_GeneralClass.AnaConf.LogFilePath ) && from == "LogFile" )
             {
-                filePath = m_GeneralClass.AnaConf.LogFilePath;
+                filePath = Path.GetDirectoryName( m_GeneralClass.AnaConf.LogFilePath );
                 filter = "Log file|*.log";
             }else
             if( File.Exists( m_GeneralClass.AnaConf.GemConfPath ) && from == "SettingDialog")
             {
-                filePath = m_GeneralClass.AnaConf.GemConfPath;
+                filePath = Path.GetDirectoryName( m_GeneralClass.AnaConf.GemConfPath );
                 filter = "Json file|*.json";
             }
 
-            filePath = Path.GetDirectoryName( filePath );
+            if( string.IsNullOrEmpty( filePath ) ) return;
 
             filePath = m_dialogService.OpenFileDialog( filePath, filter );
 
             if( File.Exists( filePath ) )
             {
-                if( from == "MainWindow" )
+                if( from == "LogFile" )
                 {
                     m_MainViewModel.CvpGemLogFilePath = filePath;
                     m_GeneralClass.AnaConf.LogFilePath = filePath;

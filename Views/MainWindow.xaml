@@ -99,10 +99,15 @@
 
         <!-- ファイルパス入力とフォルダ選択のためのStackPanel -->
         <DockPanel Grid.Row="1" Grid.Column="1" LastChildFill="True" Margin="0,5,0,0">
+            <!-- ファイルエクスポートボタン-->
+            <Button Style="{StaticResource MaterialDesignIconButton}" DockPanel.Dock="Right" Margin="0,0,30,0"
+                    Command="{Binding CommandExportFile}" >
+                <materialDesign:PackIcon Kind="FileExport" />
+            </Button>
             <!-- フォルダ選択のためのButton -->
             <Button Style="{StaticResource MaterialDesignIconButton}" DockPanel.Dock="Right" Margin="0,0,30,0"
                     Command="{Binding CommandOpenFileDialog}" 
-                    CommandParameter="MainWindow">
+                    CommandParameter="LogFile">
                 <materialDesign:PackIcon Kind="FolderOpen" />
             </Button>
 

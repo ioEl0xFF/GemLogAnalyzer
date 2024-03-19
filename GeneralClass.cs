@@ -34,6 +34,12 @@ namespace GemLogAnalyzer
         public const string GemLogAnalyzerConfigFileName = "GemLogAnalyzerConf.json";
         // GemLogAnalyzerConfigフォルダ名
         public const string GemLogAnalyzerConfigDirName = "Config";
+        // Exportファイル保存ディレクトリ
+        public const string ExportDirName = "Export";
+        // Tempファイル保存ディレクトリ
+        public const string TempDirName = "Tmp";
+        // Tempファイル名
+        public const string TempFileName = "tmplog.txt";
 
         //////////////////////////////////////////////////////
         // シングルトン設定

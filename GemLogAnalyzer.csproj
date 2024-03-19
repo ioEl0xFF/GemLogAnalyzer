@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
-    <VersionPrefix>0.1.1.4</VersionPrefix>
+    <VersionPrefix>0.1.1.5</VersionPrefix>
 	<VersionSuffix></VersionSuffix>
 	<FileVersion>0.1.0.0</FileVersion>
     <Platforms>AnyCPU;x64</Platforms>
@@ -21,6 +21,7 @@
   <ItemGroup>
     <PackageReference Include="MaterialDesignThemes" Version="4.9.0" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.77" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>
