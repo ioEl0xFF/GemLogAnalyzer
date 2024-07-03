@@ -293,6 +293,9 @@ namespace GemLogAnalyzer.ViewModels
 
             // GeneralClassから設定ファイルのパスを取得し、プロパティに設定
             CvpGemLogFilePath = m_GeneralClass.AnaConf.LogFilePath;
+
+            // フィルターパターンの初期値を設定
+            FilterPattern = "^(?!S6F12).*$";
         }
 
         /// <summary>
